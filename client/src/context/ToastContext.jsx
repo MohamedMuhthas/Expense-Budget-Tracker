@@ -1,19 +1,23 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import Toast from '../components/Toast.jsx';
 
 const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [toast, setToast] = useState(null);
+  const timer = useRef(null);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
   const showToast = useCallback((message, type = 'success') => {
+    window.clearTimeout(timer.current);
     setToast({ message, type, id: Date.now() });
-    window.setTimeout(() => setToast(null), 3500);
+    timer.current = window.setTimeout(() => setToast(null), 3500);
   }, []);
   const value = useMemo(() => ({ showToast }), [showToast]);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {toast && <div className={`toast toast-${toast.type}`} role="status">{toast.message}</div>}
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </ToastContext.Provider>
   );
 }
