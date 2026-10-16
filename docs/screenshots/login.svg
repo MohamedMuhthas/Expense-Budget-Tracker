@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
-  <rect width="1200" height="675" fill="#f1f5f9"/>
-  <rect x="370" y="85" width="460" height="505" rx="24" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
-  <text x="600" y="190" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700" fill="#1e293b">Login page screenshot</text>
-  <text x="600" y="245" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" fill="#64748b">Replace this placeholder with login.png</text>
-  <rect x="430" y="305" width="340" height="56" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
-  <rect x="430" y="385" width="340" height="56" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
-  <rect x="430" y="475" width="340" height="58" rx="10" fill="#4f46e5"/>
-</svg>
