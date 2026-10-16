@@ -48,7 +48,7 @@ export default function Register() {
     <main className="auth-page auth-page-register">
       <section className="auth-card">
         <div className="auth-brand"><span className="brand-mark">E</span><span>Everyday Ledger</span></div>
-        <div className="auth-heading"><p className="eyebrow">START FRESH</p><h1>Make room for clarity.</h1><p>Create your account to begin tracking your money.</p></div>
+        <div className="auth-heading"><p className="eyebrow">Start fresh</p><h1>Make room for clarity.</h1><p>Create your account to begin tracking your money.</p></div>
         {serverError && <div className="error-banner" role="alert">{serverError}</div>}
         <form className="auth-form" onSubmit={submit} noValidate>
           <Input id="name" name="name" label="Your name" type="text" autoComplete="name" placeholder="Alex Morgan" value={form.name} onChange={update} error={errors.name} />

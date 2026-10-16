@@ -24,7 +24,7 @@ export default function Layout() {
   const sidebar = (
     <>
       <div className="brand"><span className="brand-mark">E</span><span>Everyday<span className="brand-light"> Ledger</span></span></div>
-      <div className="nav-caption">WORKSPACE</div>
+      <div className="nav-caption">Workspace</div>
       <nav className="side-nav" aria-label="Main navigation">
         {links.map((link) => (
           <NavLink key={link.to} to={link.to} end={link.end} onClick={() => setDrawerOpen(false)} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>

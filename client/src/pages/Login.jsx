@@ -47,7 +47,7 @@ export default function Login() {
     <main className="auth-page">
       <section className="auth-card">
         <div className="auth-brand"><span className="brand-mark">E</span><span>Everyday Ledger</span></div>
-        <div className="auth-heading"><p className="eyebrow">WELCOME BACK</p><h1>Good to see you.</h1><p>Sign in to pick up where you left off.</p></div>
+        <div className="auth-heading"><p className="eyebrow">Welcome back</p><h1>Good to see you.</h1><p>Sign in to pick up where you left off.</p></div>
         {serverError && <div className="error-banner" role="alert">{serverError}</div>}
         <form className="auth-form" onSubmit={submit} noValidate>
           <Input id="email" name="email" label="Email address" type="email" autoComplete="email" placeholder="you@example.com" value={form.email} onChange={update} error={errors.email} />

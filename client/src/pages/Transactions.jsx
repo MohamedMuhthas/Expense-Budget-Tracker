@@ -99,7 +99,7 @@ export default function Transactions() {
 
   return (
     <div className="page-stack">
-      <div className="page-heading"><div><p className="eyebrow">YOUR ACTIVITY</p><h1>Transactions</h1><p>Search, review, and organize your income and expenses.</p></div><div className="heading-actions"><Button variant="secondary" onClick={exportCsv}>↓ <span className="desktop-only">Export CSV</span><span className="mobile-only">Export</span></Button><Button onClick={add}>＋ Add transaction</Button></div></div>
+      <div className="page-heading"><div><p className="eyebrow">Your activity</p><h1>Transactions</h1><p>Search, review, and organize your income and expenses.</p></div><div className="heading-actions"><Button variant="secondary" onClick={exportCsv}>↓ <span className="desktop-only">Export CSV</span><span className="mobile-only">Export</span></Button><Button onClick={add}>＋ Add transaction</Button></div></div>
       <Card className="transactions-panel">
         <div className="filter-bar">
           <div className="search-field"><span aria-hidden="true">⌕</span><input aria-label="Search transactions" value={search} placeholder="Search description or category" onChange={(event) => changeFilter(setSearch, event.target.value)} /></div>

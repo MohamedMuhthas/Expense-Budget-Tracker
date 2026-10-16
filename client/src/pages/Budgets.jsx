@@ -92,18 +92,27 @@ function BudgetDeleteDialog({ budget, month, onClose, onDeleted }) {
 function BudgetProgress({ budget }) {
   const status = budget.status === 'exceeded' ? 'exceeded' : budget.status === 'warning' ? 'warning' : 'ok';
   const percent = Math.max(0, Number(budget.percentUsed) || 0);
+  const displayPercent = Number.isInteger(percent) ? percent.toFixed(0) : percent.toFixed(1);
+  const remaining = Number(budget.remaining) || 0;
   return (
     <div className="budget-progress-wrap">
-      <div className="budget-progress-track" role="progressbar" aria-label={`${budget.category || 'Overall'} budget used`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.min(100, Math.round(percent))} aria-valuetext={`${percent.toFixed(0)}% used`}>
+      <div className="budget-progress-track" role="progressbar" aria-label={`${budget.category || 'Overall'} budget used`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.min(100, Math.round(percent))} aria-valuetext={`${displayPercent}% used`}>
         <span className={`budget-progress-fill ${status}`} style={{ width: `${Math.min(100, percent)}%` }} />
       </div>
-      <div className="budget-progress-text"><span>{formatCurrency(budget.spent)} <span className="budget-muted">spent of</span> {formatCurrency(budget.limit)}</span><span className={`budget-remaining ${budget.remaining < 0 ? 'remaining-negative' : ''}`}>{formatCurrency(budget.remaining)} remaining</span></div>
+      <div className="budget-progress-text">
+        <span>{formatCurrency(budget.spent)} spent <span className="budget-muted">of</span> {formatCurrency(budget.limit)} limit</span>
+        <span className="budget-percent-used">{displayPercent}% used</span>
+        <span className={`budget-remaining ${remaining < 0 ? 'remaining-negative' : ''}`}>
+          {remaining < 0 ? `${formatCurrency(Math.abs(remaining))} over budget` : `${formatCurrency(remaining)} remaining`}
+        </span>
+      </div>
     </div>
   );
 }
 
 export default function Budgets() {
   const [month, setMonth] = useState(currentMonth);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -132,6 +141,7 @@ export default function Budgets() {
 
   const saved = (message) => {
     setFormBudget(undefined);
+    setStatusFilter('all');
     setRetry((value) => value + 1);
     showToast(message);
   };
@@ -143,16 +153,41 @@ export default function Budgets() {
   };
 
   const exceeded = budgets.filter((budget) => budget.status === 'exceeded');
+  const overallBudget = budgets.find((budget) => !budget.category);
+  const categoryBudgets = budgets.filter((budget) => budget.category);
+  const trackedLimit = overallBudget?.limit ?? categoryBudgets.reduce((total, budget) => total + budget.limit, 0);
+  const trackedSpent = overallBudget?.spent ?? categoryBudgets.reduce((total, budget) => total + budget.spent, 0);
+  const trackedRemaining = trackedLimit - trackedSpent;
+  const statusOptions = [
+    { value: 'all', label: 'All budgets' },
+    { value: 'ok', label: 'On track' },
+    { value: 'warning', label: 'Nearly there' },
+    { value: 'exceeded', label: 'Exceeded' },
+  ];
+  const visibleBudgets = statusFilter === 'all'
+    ? budgets
+    : budgets.filter((budget) => budget.status === statusFilter);
 
   return (
     <div className="page-stack">
-      <div className="page-heading"><div><p className="eyebrow">PLAN WITH PURPOSE</p><h1>Budgets</h1><p>Set a monthly limit and keep an eye on your progress.</p></div><label className="month-picker-label">VIEW MONTH<input className="month-picker" type="month" value={month} onChange={(event) => setMonth(event.target.value)} /></label></div>
+      <div className="page-heading"><div><p className="eyebrow">Plan with purpose</p><h1>Budgets</h1><p>Set a monthly limit and keep an eye on your progress.</p></div><label className="month-picker-label">View month<input className="month-picker" type="month" value={month} onChange={(event) => { setMonth(event.target.value); setStatusFilter('all'); }} /></label></div>
+      <aside className="budget-help"><strong>How budgets work</strong><p>Set a monthly spending limit. Add expenses in <b>Transactions</b> using the same month and category to update your progress.</p><div><span><i className="budget-help-dot ok" />On track: under 80%</span><span><i className="budget-help-dot warning" />Nearly there: 80–99%</span><span><i className="budget-help-dot exceeded" />Exceeded: 100% or more</span></div></aside>
       {!loading && !error && exceeded.length > 0 && <div className="budget-warning" role="status"><span className="warning-icon" aria-hidden="true">!</span><div><strong>{exceeded.length === 1 ? 'A budget has been exceeded' : `${exceeded.length} budgets have been exceeded`}</strong><p>{exceeded.map((item) => item.category || 'Overall budget').join(', ')} is at or above its monthly limit.</p></div></div>}
+      {!loading && !error && budgets.length > 0 && <div className="budget-overview-grid">
+        <Card className="budget-overview-card"><span>Monthly limit</span><strong>{formatCurrency(trackedLimit)}</strong><small>{overallBudget ? 'Overall monthly cap' : 'Combined category limits'}</small></Card>
+        <Card className="budget-overview-card"><span>Tracked spending</span><strong>{formatCurrency(trackedSpent)}</strong><small>{overallBudget ? 'All expenses this month' : 'Expenses in budgeted categories'}</small></Card>
+        <Card className={`budget-overview-card ${trackedRemaining < 0 ? 'budget-overview-negative' : ''}`}><span>{trackedRemaining < 0 ? 'Over budget' : 'Remaining'}</span><strong>{formatCurrency(Math.abs(trackedRemaining))}</strong><small>{overallBudget ? 'Overall monthly budget' : 'Across budgeted categories'}</small></Card>
+      </div>}
       {!error && !loading && budgets.length > 0 && <div className="budget-toolbar"><span>{budgets.length} {budgets.length === 1 ? 'budget' : 'budgets'} for {month}</span><Button onClick={() => setFormBudget(null)}>＋ Add budget</Button></div>}
+      {!loading && !error && budgets.length > 0 && <div className="budget-filters" role="group" aria-label="Filter budgets by status">{statusOptions.map((option) => {
+        const count = option.value === 'all' ? budgets.length : budgets.filter((budget) => budget.status === option.value).length;
+        return <button key={option.value} className={`budget-filter ${statusFilter === option.value ? 'budget-filter-active' : ''}`} type="button" aria-pressed={statusFilter === option.value} onClick={() => setStatusFilter(option.value)}>{option.label}<span>{count}</span></button>;
+      })}</div>}
       {loading && <div className="budget-list" aria-label="Loading budgets">{[1, 2, 3].map((item) => <Card className="budget-skeleton" key={item}><div className="skeleton skeleton-title" /><div className="skeleton skeleton-copy" /><div className="skeleton skeleton-list" /></Card>)}</div>}
       {error && <div className="page-error" role="alert"><div><strong>Budgets unavailable</strong><p>{error}</p></div><button className="button button-secondary" onClick={() => setRetry((value) => value + 1)}>Try again</button></div>}
       {!loading && !error && budgets.length === 0 && <Card className="page-panel"><EmptyState title="No budgets for this month" message="Create an overall budget or set limits for individual expense categories." action={<Button onClick={() => setFormBudget(null)}>＋ Add your first budget</Button>} /></Card>}
-      {!loading && !error && budgets.length > 0 && <div className="budget-list">{budgets.map((budget) => <Card className="budget-card" key={budget._id}>
+      {!loading && !error && budgets.length > 0 && visibleBudgets.length === 0 && <Card className="page-panel"><EmptyState title="No budgets in this status" message="Choose another status filter to view your budgets." action={<Button variant="secondary" onClick={() => setStatusFilter('all')}>Show all budgets</Button>} /></Card>}
+      {!loading && !error && visibleBudgets.length > 0 && <div className="budget-list">{visibleBudgets.map((budget) => <Card className="budget-card" key={budget._id}>
         <div className="budget-card-heading"><div className="budget-category-heading"><span className={`budget-category-icon ${budget.category ? '' : 'overall-icon'}`} aria-hidden="true">{budget.category ? '◇' : '◎'}</span><div><h2>{budget.category || 'Overall monthly budget'}</h2><span>{budget.category ? 'Category budget' : 'All expenses combined'}</span></div></div><div className="budget-card-actions"><span className={`budget-status ${budget.status}`}>{budget.status === 'ok' ? 'On track' : budget.status === 'warning' ? 'Nearly there' : 'Exceeded'}</span><button className="budget-action" aria-label={`Edit ${budget.category || 'overall'} budget`} onClick={() => setFormBudget(budget)}>Edit</button><button className="budget-action budget-delete-action" aria-label={`Delete ${budget.category || 'overall'} budget`} onClick={() => setDeleteBudget(budget)}>Delete</button></div></div>
         <BudgetProgress budget={budget} />
       </Card>)}</div>}
